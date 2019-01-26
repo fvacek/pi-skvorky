@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf8">
+	</head>
+<body>
+
+<p id="vysledek" style="font-size: 40px; font-family: sans-serif;">3.14-škvorky</p>
+<p>
+	<input type="checkbox" id="threePlayers" value="3" onClick="playerCount = (playerCount == 2)? playerCount = 3: playerCount = 2">3 players
+	<button onClick="restart();">Restart</button>
+</p>
+<canvas id="myCanvas" width="800" height="800" style="border:1px solid #d3d3d3;" onclick="onMouseClick(event)">
+Your browser does not support the HTML5 canvas tag.</canvas>
+
+<script>
+var c = document.getElementById("myCanvas");
+var ctx = c.getContext("2d");
+var H = 35;
+
+var playerNo = 1
+var playerCount = 2
+var rowCount;
+var columnCount;
+var nekdo_vyhral
+var pole;
+
+restart();
+
+function restart()
+{
+	pole = new Array();
+	playerNo = 1
+	nekdo_vyhral = false
+
+	ctx.lineCap = 'round';
+	ctx.strokeStyle = "darkgray";
+	ctx.fillStyle = "lemonchiffon";
+	ctx.fillRect(0, 0, c.width, c.height)
+
+	columnCount = ((c.width / H) | 0) + 1;
+	rowCount = ((c.height / H) | 0) + 1;
+
+	ctx.beginPath()
+	ctx.lineWidth=1
+	for(let i=0; i<rowCount; i++) {
+		ctx.moveTo(0, i * H);
+		ctx.lineTo(c.height, i * H);
+		ctx.stroke();
+		pole.push(new Array(columnCount))
+	}
+	for(let i=0; i<columnCount; i++) {
+		ctx.moveTo(i * H, 0);
+		ctx.lineTo(i * H, c.width);
+		ctx.stroke();
+	}
+}
+
+function nakresliKrizek(x, y)
+{
+	var posun = H / 5;
+	ctx.beginPath()
+	ctx.strokeStyle = "darkorange";
+	ctx.lineWidth=5
+	ctx.moveTo(x*H + posun, y*H + posun);
+	ctx.lineTo((x+1)*H - posun, (y+1)*H - posun);
+
+	ctx.moveTo((x+1)*H - posun, y*H + posun);
+	ctx.lineTo(x*H + posun, (y+1)*H - posun);
+	ctx.stroke();
+}
+
+function nakresliKolecko(x,y)
+{
+	ctx.beginPath();
+	ctx.strokeStyle = "darkgreen";
+	ctx.lineWidth=5
+	ctx.arc(x*H+H/2, y*H+H/2, H/3, 0, 2*Math.PI);
+	ctx.stroke();
+}
+
+function nakresliCtverecek(x,y)
+{
+	var posun = H / 5;
+	ctx.beginPath()
+	ctx.strokeStyle = "darkblue";
+	ctx.lineWidth=5
+	ctx.moveTo(x*H + posun, y*H + posun);
+	ctx.lineTo(x*H + posun, (y+1)*H - posun);
+	ctx.lineTo((x+1)*H - posun, (y+1)*H - posun);
+	ctx.lineTo((x+1)*H - posun, y*H + posun);
+	ctx.lineTo(x*H + posun, y*H + posun);
+	ctx.stroke();
+}
+
+function nakresliCervenouTlustouCaru(pos1, pos2)
+{
+	var posun = H / 2;
+	ctx.beginPath()
+	ctx.strokeStyle = "red";
+	ctx.lineWidth=10
+	ctx.moveTo(pos1[1]*H + posun, pos1[0]*H + posun);
+	ctx.lineTo(pos2[1]*H + posun, pos2[0]*H + posun);
+	ctx.stroke();
+}
+
+function onMouseClick(event)
+{
+	if(nekdo_vyhral)
+		return;
+	var x = (event.offsetX / H) | 0;
+	var y = (event.offsetY / H) | 0;
+	var p = pole[y][x]
+	if(p) {
+		return;
+	}
+	if(playerNo == 1) {
+		nakresliKrizek(x, y)
+	}
+	else if(playerNo == 2) {
+		nakresliKolecko(x, y)
+	}
+	else if(playerNo == 3) {
+		nakresliCtverecek(x, y)
+	}
+	pole[y][x] = playerNo
+	if(zkontrolujPetici(y, x, 0, 1))
+		return;
+	if(zkontrolujPetici(y, x, 1, 0))
+		return;
+	if(zkontrolujPetici(y, x, 1, 1))
+		return;
+	if(zkontrolujPetici(y, x, -1, 1))
+		return;
+	playerNo++;
+	if(playerNo > playerCount)
+		playerNo = 1
+}
+
+function zkontrolujPetici(y, x, sy, sx)
+{
+	let p = pole[y][x]
+	let pocet = 1;
+	let pos1 = [y, x]
+	let pos2 = [y, x]
+	for(let i=1; i<5; i++) {
+		if(y + i*sy < 0
+			|| y + i*sy >= rowCount
+			|| x + i*sx < 0
+			|| x + i*sx >= columnCount)
+			break;
+		let p2 = pole[y + i*sy][x + i*sx]
+		if(p2 == p) {
+			pocet++;
+			pos1 = [y + i*sy, x + i*sx]
+		}
+		else
+			break;
+	}
+	for(let i=1; i<5; i++) {
+		if(y - i*sy < 0
+			|| y - i*sy >= rowCount
+			|| x - i*sx < 0
+			|| x - i*sx >= columnCount)
+			break;
+		let p2 = pole[y - i*sy][x - i*sx]
+		if(p2 == p) {
+			pocet++;
+			pos2 = [y - i*sy, x - i*sx]
+		}
+		else
+			break;
+	}
+	if(pocet >= 5) {
+		document.getElementById("vysledek").innerHTML = "player " + p + " won!";
+		nekdo_vyhral = true
+		nakresliCervenouTlustouCaru(pos1, pos2)
+	}
+	return nekdo_vyhral;
+}
+
+</script>
+
+</body>
+</html>
+

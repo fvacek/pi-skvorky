@@ -9,6 +9,7 @@
 <p>
 	<input type="checkbox" id="threePlayers" value="3" onClick="playerCount = (playerCount == 2)? playerCount = 3: playerCount = 2">3 players
 	<button onClick="restart();">Restart</button>
+	<button onClick="back();">Back</button>
 </p>
 <canvas id="myCanvas" width="800" height="800" style="border:1px solid #d3d3d3;" onclick="onMouseClick(event)">
 Your browser does not support the HTML5 canvas tag.</canvas>
@@ -24,12 +25,14 @@ var rowCount;
 var columnCount;
 var nekdo_vyhral
 var pole;
+var journal;
 
 restart();
 
 function restart()
 {
 	pole = new Array();
+	journal = new Array();
 	playerNo = 1
 	nekdo_vyhral = false
 
@@ -53,6 +56,18 @@ function restart()
 		ctx.moveTo(i * H, 0);
 		ctx.lineTo(i * H, c.width);
 		ctx.stroke();
+	}
+}
+
+function back()
+{
+	if(journal && journal.length) {
+		playerNo--;
+		if(playerNo < 1)
+			playerNo = playerCount
+		let pos = journal.pop()
+		pole[pos[0]][pos[1]] = 0
+		nakresliNic(pos[1], pos[0])
 	}
 }
 
@@ -93,6 +108,12 @@ function nakresliCtverecek(x,y)
 	ctx.stroke();
 }
 
+function nakresliNic(x,y)
+{
+	var posun = 2;
+	ctx.fillRect(x*H + posun, y*H + posun, H - 2*posun, H - 2*posun)
+}
+
 function nakresliCervenouTlustouCaru(pos1, pos2)
 {
 	var posun = H / 2;
@@ -124,6 +145,7 @@ function onMouseClick(event)
 		nakresliCtverecek(x, y)
 	}
 	pole[y][x] = playerNo
+	journal.push([y, x])
 	if(zkontrolujPetici(y, x, 0, 1))
 		return;
 	if(zkontrolujPetici(y, x, 1, 0))
